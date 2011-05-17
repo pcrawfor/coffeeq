@@ -1,0 +1,13 @@
+{
+  "name"         : "coffeeq",
+  "version"      : "0.0.1",
+  "description"  : "Redis backed node.js queue implemented in CoffeeScript",
+  "keywords"     : ["redis", "queue", "coffee script", "coffeeq"],
+  "homepage"     : "https://github.com/pcrawfor/coffeeq",
+  "author"       : "Paul Crawford <paul@cometcoast.com> (http://cometcoast.com)",  
+  "main"         : "./lib/coffeeq",
+  "directories"  : {"lib"  : "./lib"},
+  "repository"   : {"type" : "git",  "url": "https://github.com/pcrawfor/coffeeq.git"},
+  "dependencies" : {"redis": ">= 0.6.0"},
+  "engines"      : {"node" : ">= 0.4.7"}
+}
