@@ -22,6 +22,8 @@ CoffeeQ allows you to define workers dedicated to processing tasks for a given q
   
 You can define the tasks to be performed as functions, in the simplest case you can 
 
+CoffeeScript:
+
     jobs = 
       multiply: (a, b, callback) ->
         console.log "callback add #{a} + #{b}"
@@ -32,19 +34,45 @@ You can define the tasks to be performed as functions, in the simplest case you 
       fail: (callback) ->
         console.log "callback fail"
         callback()
+        
+JS:
+
+    var jobs = {
+      multiply: function(a,b,callback) {
+        console.log('callback add' + a + ' + ' + 'b');
+        callback(a*b);      
+      }
+      succeed: function(callback) {
+        console.log("callback succeed");
+        callback();
+      }
+      fail: function(callback) {
+        console.log("callback fail");
+        callback();
+      }
+    }
 
 ### Adding items to a Queue
 
 To add an job to a queue you create a CoffeeQ client and enqueue the task for the given queue.
 
+CoffeeScript:
+
     CoffeeQ = require 'coffeeq'
     client = new CoffeeQ
     client.enqueue "test_queue", "add", [1,4]
 
+JS:
+
+    var CoffeeQ = require('coffeeq');
+    var client = new CoffeeQ();
+    client.enqueue("test_queue", "add", [1, 4]);
 
 ### Implementing Workers
 
-Workers are 
+Workers can watch a single queue at a time (as of this writing - this may be changed in a future version) and process any items that are pushed onto this queue.  The worker responds to any of the functions that are defined by the jobs passed into it on initialization.
+
+CoffeeScript:
 
       Worker = require('coffeeq').Worker
 
@@ -72,3 +100,37 @@ Workers are
 
       worker.start()
 
+JS:
+
+    var Worker = require('coffeeq').Worker;
+    var jobs = {
+      multiply: function(a,b,callback) {
+        console.log('callback add' + a + ' + ' + 'b');
+        callback(a*b);      
+      },
+      succeed: function(callback) {
+        console.log("callback succeed");
+        callback();
+      },
+      fail: function(callback) {
+        console.log("callback fail");
+        callback();
+      }
+    }
+    
+    var worker = new Worker("test_queue", jobs);
+    
+    worker.on('message', function(worker, queue){
+      console.log("message fired");
+    });
+    worker.on('job', function(worker, queue){
+      console.log("job fired");
+    });
+    worker.on('error', function(worker, queue){
+      console.log("error fired");
+    });
+    worker.on('success', function(worker, queue){
+      console.log("success fired");
+    });
+
+    worker.start();
