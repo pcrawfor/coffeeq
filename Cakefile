@@ -36,7 +36,7 @@ task 'deps', 'Check dependencies', (options) ->
 task 'publish', 'Publish NPM Package', (options) ->
   invoke 'build_js'
   test 'You need npm to do npm publish... makes sense?', 'which', 'npm'
-  #runComplexCommand 'npm publish'
+  runCommand 'sudo npm publish'
   invoke 'clean_js'
   console.log "Module published"
 
