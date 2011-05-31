@@ -49,5 +49,5 @@ class CoffeeQ
   
 # export classes
 CoffeeQ.Worker = Worker  
-CoffeeQ.version = "0.0.1"
+CoffeeQ.version = "0.0.3"
 module.exports = CoffeeQ
