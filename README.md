@@ -24,32 +24,32 @@ You can define the tasks to be performed as functions, in the simplest case you 
 
 CoffeeScript:
 
-    jobs = 
-      multiply: (a, b, callback) ->
-        console.log "callback add #{a} + #{b}"
-        callback(a * b)        
+    jobs =       
       succeed: (callback) ->
         console.log "callback succeed"
         callback()
       fail: (callback) ->
         console.log "callback fail"
         callback()
+      multiply: (a, b, callback) ->
+        console.log "callback multiply #{a} * #{b}"
+        callback(a * b)
         
 JS:
 
     var jobs = {
-      multiply: function(a,b,callback) {
-        console.log('callback add' + a + ' + ' + 'b');
-        callback(a*b);      
-      }
       succeed: function(callback) {
         console.log("callback succeed");
         callback();
-      }
+      },
       fail: function(callback) {
         console.log("callback fail");
         callback();
-      }
+      },
+      multiply: function(a,b,callback) {
+        console.log('callback multiply' + a + ' * ' + 'b');
+        callback(a*b);      
+      }      
     }
 
 ### Adding items to a Queue
@@ -76,16 +76,16 @@ CoffeeScript:
 
       Worker = require('coffeeq').Worker
 
-      jobs = 
-        multiply: (a, b, callback) ->
-          console.log "callback add #{a} + #{b}"
-          callback(a * b)        
+      jobs =              
         succeed: (callback) ->
           console.log "callback succeed"
           callback()
         fail: (callback) ->
           console.log "callback fail"
           callback()
+        multiply: (a, b, callback) ->
+          console.log "callback add #{a} * #{b}"
+          callback(a * b)
 
       worker = new Worker("test_queue", jobs)
 
@@ -104,10 +104,6 @@ JS:
 
     var Worker = require('coffeeq').Worker;
     var jobs = {
-      multiply: function(a,b,callback) {
-        console.log('callback add' + a + ' + ' + 'b');
-        callback(a*b);      
-      },
       succeed: function(callback) {
         console.log("callback succeed");
         callback();
@@ -115,6 +111,10 @@ JS:
       fail: function(callback) {
         console.log("callback fail");
         callback();
+      },
+      multiply: function(a,b,callback) {
+        console.log('callback multiply' + a + ' * ' + 'b');
+        callback(a*b);      
       }
     }
     
@@ -134,3 +134,13 @@ JS:
     });
 
     worker.start();
+    
+## Ruby Client
+
+See [https://github.com/pcrawfor/coffeeq-rubyclient](https://github.com/pcrawfor/coffeeq-rubyclient) for a ruby client implementation to use with the CoffeeQ queueing system.
+    
+---    
+
+# Credits
+
+Credit to [technoweenie](https://github.com/technoweenie) much inspiration and insight was taken from his resque and coffee-resque libraries which I originally looked at.
