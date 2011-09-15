@@ -1,5 +1,6 @@
 redis = require 'redis'
 EventEmitter = require('events').EventEmitter
+helper = require './coffeeq_helpers'
 
 ###
 CoffeeQWorker
@@ -32,8 +33,10 @@ Emits 'error' if there is an error fetching or running the job.
   queue  - The String queue that is being checked.
   job    - The parsed Job object that was being run.
 ###
-class CoffeeQWorker extends EventEmitter
-  constructor: (queue, callbacks, options) ->
+
+class CoffeeQWorker extends EventEmitter    
+  
+  constructor: (queue, callbacks, options) ->    
     options = {} unless options
     @port = options.port || 6379
     @host = options.host || 'localhost'
@@ -44,11 +47,16 @@ class CoffeeQWorker extends EventEmitter
     @queueClient = redis.createClient @port, @host
     @pubsubClient = redis.createClient @port, @host
     @registerMessageHandlers @queue_key
-    
+    @registerAsRunning
+      
+  # include call must come after the constructor
+  helper.include(this)
+  
   start: ->
     console.log "start worker"
     @clearQueue(@queue_key)
     @subscribeToQueueChannel(@queue_key)
+    @registerAsRunning()
     
   stop: ->
     console.log "end worker"
@@ -62,10 +70,12 @@ class CoffeeQWorker extends EventEmitter
     console.log "unsubscribe from #{channel}"
     @pubsubClient.end()
   
+  registerAsRunning: ->
+    @queueClient.set(@runningKeyForQueue(@queue), Date())
+  
   # Registers to handle messages for pubsub
   registerMessageHandlers: (channel) ->    
-    @pubsubClient.on "message", (channel, message) =>
-      console.log "client 1 channel:#{channel} message:#{message}"      
+    @pubsubClient.on "message", (channel, message) =>      
       @emit 'message', @, channel, message
       @popAndRun channel if message == "queued"
     @pubsubClient.on "subscribe", (channel, count) ->
@@ -73,8 +83,7 @@ class CoffeeQWorker extends EventEmitter
     
   # Recursively pops and runs any items found on the queue at startup
   clearQueue: (queue) ->
-    @queueClient.llen queue, (err, resp) =>
-      console.log "CLEAR QUEUE resp: #{resp}"
+    @queueClient.llen queue, (err, resp) =>      
       if resp > 0
         @popAndRun queue
         @clearQueue(queue)
@@ -87,10 +96,14 @@ class CoffeeQWorker extends EventEmitter
   ###
   popAndRun: (queue) ->
     @queueClient.lpop queue, (err, resp) => 
-      if !err && resp
-        console.log "resp #{resp}"
+      if !err && resp        
+        job = JSON.parse(resp.toString())
         # TODO: perform task
-        @perform JSON.parse(resp.toString())
+        try
+          @perform job
+        catch e
+          console.log("CATCHING EXCEPTION #{e}")
+          @recordFailure(e, job)
       else
         console.log "Error popping #{err}"
       
@@ -131,9 +144,14 @@ class CoffeeQWorker extends EventEmitter
   Returns nothing.
   ###
   fail: (err, job) ->
+    @recordFailure(err, job)          
     @emit 'error', err, @, @queue, job    
   
-  
+  recordFailure: (err, job) ->
+    key = @errorKeyForQueue(@queue)    
+    @queueClient.rpush key, "Error processing:#{JSON.stringify(job)} | #{err}", (err, val) =>
+      console.log "pushed error on queue #{@queue}"
+    
   ###
   Sets the process title.    
   msg - The String message for the title.    
@@ -149,16 +167,8 @@ class CoffeeQWorker extends EventEmitter
       @_name = if @ready
         [name or 'node', process.pid, @queues].join(":")
       else
-        name
+        name     
   
-  ###
-  Builds a namespaced Redis key with the given arguments.    
-  args - Array of Strings.    
-  Returns an assembled String key.
-  ###
-  key: (args...) ->
-    args.unshift @namespace
-    args.join ":"
 #end class
 
 # export classes

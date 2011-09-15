@@ -1,4 +1,5 @@
 redis = require 'redis'
+helper = require './coffeeq_helpers'
 Worker = require './coffeeq_worker'
 
 ###
@@ -6,14 +7,17 @@ Worker = require './coffeeq_worker'
   Uses two redis client instances so that it can handle pubsub and normal events simultaneously (redis connections have a pubsub mode that prevents one from doing both pubsub and normal events simultaneously)
   @queueClient, @pubsubClient
 ###
-class CoffeeQ    
-  constructor: (options) ->
-    console.log "Init CoffeeQ"
+
+class CoffeeQ
+  constructor: (options) ->    
     options = {} unless options
     @port = options.port || 6379
     @host = options.host || 'localhost'
     @queueClient = redis.createClient @port, @host
     @pubsubClient = redis.createClient @port, @host
+
+  # include call must come after the constructor
+  helper.include(this)
 
   ###
   Public: Queues a job in a given queue to be run.
@@ -24,30 +28,17 @@ class CoffeeQ
   
    Returns nothing.      
   ### 
-  enqueue: (queue, func, args) ->
-    console.log "enqueue"
+  enqueue: (queue, func, args) ->    
     val = JSON.stringify class: func, args: args    
-    key = @key('queue', queue)
-    console.log("key #{key}")
-    @queueClient.rpush key, val, (err, val) =>
-      console.log "pushed #{val}" 
-      @pubsubClient.publish( key, "queued", -> 
+    key = @activeKeyForQueue(queue)
+    @queueClient.rpush key, val, (err, val) =>      
+      @pubsubClient.publish(key, "queued", -> 
         console.log "published on #{queue}"
-      ) if !err  
-  
-  ###
-    Builds a namespaced Redis key with the given arguments.
-    args - Array of Strings.  
-    Returns an assembled String key
-  ###
-  key: (args...) ->
-    args.unshift @namespace
-    args.join ":"
-  
-# end class
+      ) if !err    
 
+# end class
   
 # export classes
-CoffeeQ.Worker = Worker  
-CoffeeQ.version = "0.0.3"
+CoffeeQ.Worker = Worker
+CoffeeQ.version = "0.0.4"
 module.exports = CoffeeQ
