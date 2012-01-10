@@ -21,14 +21,19 @@ test = (msg, name, args...) ->
 # ====================================
 #              TASKS
 # ====================================    
+task 'rebuild_js', 'Clean and Rebuild JS', (options) ->  
+  invoke 'deps'
+  invoke 'clean_js'
+  invoke 'build_js'
+
 task 'build_js', 'Generate JS from Coffeescript', (options) ->
   invoke 'deps'
   runCommand 'coffee -c -o lib src/*.coffee'
   console.log "JS Compiled to lib folder"
 
 task 'clean_js', 'Remove js output', (options) ->
-  runCommand 'rm -rf lib/'
-  console.log "lib folder deleted"
+  runCommand 'rm -rf lib/*.js'
+  console.log "compiled js in lib folder deleted"
   
 task 'deps', 'Check dependencies', (options) ->
   test 'You need to have CoffeeScript in your PATH.\nPlease install it using `brew install coffee-script` or `npm install coffee-script`.', 'which' , 'coffee'  
