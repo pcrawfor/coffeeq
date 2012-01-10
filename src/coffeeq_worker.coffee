@@ -71,8 +71,16 @@ class CoffeeQWorker extends EventEmitter
     @pubsubClient.end()
   
   registerAsRunning: ->
-    @queueClient.set(@runningKeyForQueue(@queue), Date())
-  
+    @queueClient.set(@runningKeyForQueue(@queue), Date())    
+    @currentCount = 0
+    @queueClient.set(@performedKeyForQueue(@queue), @currentCount)
+      
+  incrementPerformedCount: ->
+    performedKey = @performedKeyForQueue(@queue)
+    console.log("GET PERFORMED COUNT #{performedKey}")
+    @currentCount = @currentCount+1    
+    @queueClient.set(performedKey, @currentCount)
+            
   # Registers to handle messages for pubsub
   registerMessageHandlers: (channel) ->    
     @pubsubClient.on "message", (channel, message) =>      
@@ -134,7 +142,8 @@ class CoffeeQWorker extends EventEmitter
   job    - The parsed Job object that is being run.    
   Returns nothing.
   ###
-  succeed: (result, job) ->    
+  succeed: (result, job) ->
+    @incrementPerformedCount()
     @emit 'success', @, @queue, job, result
 
   ###
@@ -148,8 +157,8 @@ class CoffeeQWorker extends EventEmitter
     @emit 'error', err, @, @queue, job    
   
   recordFailure: (err, job) ->
-    key = @errorKeyForQueue(@queue)    
-    @queueClient.rpush key, "Error processing:#{JSON.stringify(job)} | #{err}", (err, val) =>
+    key = @errorKeyForQueue(@queue)
+    @queueClient.rpush key, "Error processing:#{JSON.stringify(job)} | #{err} | #{Date()}", (err, val) =>
       console.log "pushed error on queue #{@queue}"
     
   ###

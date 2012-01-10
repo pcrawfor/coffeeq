@@ -10,6 +10,9 @@ HelperMixin.prototype =
   activeKeyForQueue: (queue) ->
     @key('queue', queue)
   
+  performedKeyForQueue: (queue) ->
+    @key('performed', queue)
+  
   #  Builds a namespaced Redis key with the given arguments
   key: (args...) ->
     args.unshift @namespace
@@ -26,7 +29,7 @@ HelperMixin.prototype =
 CoffeeQHelpers =
   include: (recvClass) ->
     for methodName, func of HelperMixin.prototype when typeof func is 'function'    
-      if(!recvClass.prototype[methodName])        
+      if(!recvClass.prototype[methodName])      
         recvClass.prototype[methodName] = HelperMixin.prototype[methodName]
     
 
