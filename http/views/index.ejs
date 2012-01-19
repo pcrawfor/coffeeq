@@ -1,0 +1,57 @@
+<h1><span id="count"><%= queues.length %></span> Active Queues</h1>
+
+<table class="zebra-striped">
+  <tbody>
+    <tr>
+      <th>Queue</th>
+      <th>Count (items on Queue)</th>
+      <th>Completed</th>
+      <th>Throughput (jobs/min)</th>
+      <th>Started At</th>
+      <th>Running Time</th>
+      <th>Errors</th>      
+    </tr>
+  <% for(i in queues) { %>
+    <tr id="<%= queues[i].replace(":queue:", "") %>_row">
+      <td><%= queueName(queues[i]) %> (<%= queues[i] %>)</td>
+      <td><%= counts[queues[i]] %> items on queue</td>
+      <td><%= performedCounts[queues[i]] %></td>
+      <td><%= throughputVals[queues[i]] %></td>
+      <td><%= startTimes[queues[i]] %></td>
+      <td><%= formatTime(runningFor[queues[i]]) %></td>
+      <td><span class="<%= errorLabelClass(errors[queues[i]]) %>"><%= errors[queues[i]] %></span> errors <a href="/errors/<%= queues[i].replace(":queue:", "") %>" style="padding-left: 10px;">View Errors</a></td>
+    </tr>
+  <% } %>
+  </tbody>    
+</table>
+
+<script>
+  var handler = function(data) {
+    console.log("update");     
+    $('#count')[0].innerHTML = data.queues.length;
+    for(i in data.queues) {
+      var qid = "#"+ data.queues[i].replace(":queue:", "") +"_row";
+      // update name
+      $(qid)[0].children[0].innerHTML = shared_helpers.queueName(data.queues[i]) + " (" + data.queues[i] + ")";
+      
+      // update items on queue count
+      $(qid)[0].children[1].innerHTML = data.counts[data.queues[i]];
+      
+      // update completed
+      $(qid)[0].children[2].innerHTML = data.performedCounts[data.queues[i]];
+      
+      // update throughput
+      $(qid)[0].children[3].innerHTML = data.throughputVals[data.queues[i]];
+      
+      // update started at
+      $(qid)[0].children[4].innerHTML = data.startTimes[data.queues[i]];
+      
+      // update running time
+      $(qid)[0].children[5].innerHTML = shared_helpers.formatTime(data.runningFor[data.queues[i]]);
+      
+      // update errors count and link      
+    }
+  };
+  
+  socket.on('update', handler);
+</script>

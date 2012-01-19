@@ -1,0 +1,15 @@
+<p><a href="/">Back to Dashboard</a></p>
+
+<h2>Queue: <%= queueName %></h2> 
+<h3><%= errors.length %> Errors</h3>
+
+<a href="/errors/<%= queueName %>/clear" class="btn danger" style="margin:5px;">Clear All Errors</a>
+<table class="zebra-striped">
+  <tbody>
+    <% for(i in errors) { %>
+      <tr>
+        <td><%= errors[i] %></td>
+      </tr>
+    <% } %>    
+  </tbody>
+</table>

@@ -1,6 +1,6 @@
 {
   "name"         : "coffeeq",
-  "version"      : "0.0.4",
+  "version"      : "0.0.5",
   "description"  : "Redis backed node.js queue implemented in CoffeeScript",
   "keywords"     : ["redis", "queue", "coffee script", "coffeeq"],
   "homepage"     : "https://github.com/pcrawfor/coffeeq",
@@ -8,6 +8,6 @@
   "main"         : "./lib/coffeeq",
   "directories"  : {"lib"  : "./lib"},
   "repository"   : {"type" : "git",  "url": "https://github.com/pcrawfor/coffeeq.git"},
-  "dependencies" : {"redis": ">= 0.6.0"},
+  "dependencies" : {"redis": ">= 0.6.0", "express" : "2.5.1", "ejs" : "0.5.0" },
   "engines"      : {"node" : ">= 0.4.7"}
 }

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>CoffeeQ Overlord</title>  
+    <link rel='stylesheet' type='text/css' href="/stylesheets/bootstrap.css">
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js" type="text/javascript"></script>
+    
+    <style>
+      body {
+        padding-top: 60px;
+      }
+    </style>
+    
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/javascripts/shared_helpers.js"></script>
+    
+    <script>
+      var socket = io.connect('http://localhost:4000');
+      var realtime = <%= realtimeOn %>;
+      
+      var setOnDisplay = function() {
+        $("#realtime_mode").attr('class', 'label success');
+        $("#realtime_mode")[0].innerHTML = "ON";
+        $("#realtime_btn")[0].innerHTML = "Turn OFF";
+        $("#realtime_btn")[0].href = "#"
+        $("#realtime_btn").click(function(e) { 
+            socket.removeListener('update', handler); 
+            realtime = false;
+            setOffDisplay();
+          });
+      };
+      
+      var setOffDisplay = function() {
+        $("#realtime_mode").attr('class', 'label warning');
+        $("#realtime_mode")[0].innerHTML = "OFF";
+        $("#realtime_btn")[0].innerHTML = "Turn ON";
+        $("#realtime_btn")[0].href = "#"
+        $("#realtime_btn").click(function(e) { 
+            socket.on('update', handler);
+            realtime = true;
+            setOnDisplay();
+          });
+      }
+      
+      $(function() {
+        // Handler for .ready() called.
+        if(realtime) {
+          console.log("Realtime is on!");
+          setOnDisplay();                            
+          //$("#realtime_btn")[0].href = "/realtime/off"
+        } else {
+          console.log("Realtime is off!");
+          setOffDisplay();                    
+          //$("#realtime_btn")[0].href = "/realtime/on"
+        }
+      });
+    </script>
+  </head>
+  <body>
+    <div class="topbar">
+      <div class="topbar-inner">
+        <div class="container-fluid">
+          <a class="brand" href="/">CoffeeQ Overlord</a>
+          <ul class="nav">
+            <li class="active"><a href="">Queues</a></li>
+          </ul>
+          <p class="pull-right" style="color:#999;">CoffeeQ Queueing system</p>
+        </div>
+      </div>
+    </div>
+            
+    <div class="container-fluid">
+      <div class="sidebar">
+        <div class="well">
+          <h5>RealTime Mode</h5>
+          <div>
+            <p>Real Time Updates: <span id="realtime_mode" class="label warning">OFF</span></p>
+            <p>
+              <a href="/realtime/on" id="realtime_btn" class="btn">Turn ON</a>
+            </p>
+          </div>
+        </div>
+      </div>
+    
+      <div class="content">
+        <%- body %>
+      </div>
+    </div>
+  </body>
+</html>
