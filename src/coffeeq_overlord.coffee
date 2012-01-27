@@ -33,7 +33,7 @@ TODO:
 
 redis = require 'redis'
 helper = require './coffeeq_helpers'
-Ctrl =  require '../vendor/ctrl'
+Ctrl =  require '../vendor/ctrl/ctrl.js'
 
 class CoffeeQOverlord    
   constructor: (options={}) ->
