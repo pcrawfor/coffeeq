@@ -32,7 +32,7 @@ task 'build_js', 'Generate JS from Coffeescript', (options) ->
   console.log "JS Compiled to lib folder"
 
 task 'clean_js', 'Remove js output', (options) ->
-  runCommand 'rm -rf lib/*.js'
+  runCommand 'rm -f lib/*.js'
   console.log "compiled js in lib folder deleted"
   
 task 'deps', 'Check dependencies', (options) ->
