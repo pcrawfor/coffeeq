@@ -34,11 +34,12 @@ class CoffeeQ
     @queueClient.rpush key, val, (err, val) =>      
       @pubsubClient.publish(key, "queued", -> 
         console.log "published on #{queue}"
-      ) if !err    
+      ) if !err 
 
 # end class
   
 # export classes
 CoffeeQ.Worker = Worker
-CoffeeQ.version = "0.0.4"
+CoffeeQ.version = "0.0.5"
+CoffeeQ.app = require('./http/app.js')
 module.exports = CoffeeQ
