@@ -5,3 +5,5 @@ Makefile
 src/
 test/
 node_modules/
+diff.txt
+lib/http/node_modules/
