@@ -167,7 +167,7 @@ class CoffeeQWorker extends EventEmitter
   Returns nothing.
   ###
   procline: (msg) ->
-    process.title = "resque-#{exports.version}: #{msg}"
+    process.title = "coffeeq: #{msg}"
   
   # extend object
   Object.defineProperty @prototype, 'name',
