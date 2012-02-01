@@ -40,6 +40,6 @@ class CoffeeQ
   
 # export classes
 CoffeeQ.Worker = Worker
-CoffeeQ.version = "0.0.6"
+CoffeeQ.version = "0.0.7"
 CoffeeQ.app = require('./http')
 module.exports = CoffeeQ
