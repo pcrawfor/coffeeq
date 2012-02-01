@@ -123,7 +123,7 @@ class CoffeeQWorker extends EventEmitter
   perform: (job) ->
     old_title = process.title
     @emit 'job', @, @queue, job
-    @procline "#{@queue} job since #{(new Date).toString()}"
+    
     if cb = @callbacks[job.class]
       cb job.args..., (result) =>
         try
@@ -159,15 +159,7 @@ class CoffeeQWorker extends EventEmitter
   recordFailure: (err, job) ->
     key = @errorKeyForQueue(@queue)
     @queueClient.rpush key, "Error processing:#{JSON.stringify(job)} | #{err} | #{Date()}", (err, val) =>
-      console.log "pushed error on queue #{@queue}"
-    
-  ###
-  Sets the process title.    
-  msg - The String message for the title.    
-  Returns nothing.
-  ###
-  procline: (msg) ->
-    process.title = "coffeeq: #{msg}"
+      console.log "pushed error on queue #{@queue}"    
   
   # extend object
   Object.defineProperty @prototype, 'name',
