@@ -84,8 +84,7 @@ class CoffeeQWorker extends EventEmitter
   redisConnectionError: (error) =>
     # handle redis connection error and retry connection
     # try to reconnect, if the connection fails
-    console.log "handler | #{@connection_attempts} attempts"
-    console.log "CONN ERROR: #{JSON.stringify(error)}"
+    console.log "CoffeeQ Worker redis connection failure | #{@connection_attempts} retry attempts made"    
 
     @queueNeedsRestart = true
     @pubsubNeedsRestart = true
@@ -99,7 +98,7 @@ class CoffeeQWorker extends EventEmitter
 
   start: ->
     console.log "start worker"
-    if @pubsubActive && @queueActive      
+    if !@queueNeedsRestart && !@pubsubNeedsRestart
       @startRedisPubsub()
       @startRedisQueue()
     else      
