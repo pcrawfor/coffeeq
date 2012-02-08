@@ -34,6 +34,13 @@ Emits 'error' if there is an error fetching or running the job.
   job    - The parsed Job object that was being run.
 ###
 
+process.on 'uncaughtException', (err) ->    
+  console.log "Caught exception: #{err}"
+  if err.match /ECONNREFUSED/
+    console.log "Redis Connection Error"
+  else
+    process.exit(1)
+
 class CoffeeQWorker extends EventEmitter    
   
   constructor: (queue, callbacks, options) ->    
@@ -43,19 +50,68 @@ class CoffeeQWorker extends EventEmitter
     @queue = queue    
     @queue_key = @key('queue', queue)
     @callbacks = callbacks or {}
+    @connection_attempts = 0    
+    @queueNeedsRestart = false
+    @pubsubNeedsRestart = false
+
     # init the queue clients and subscribe to the queue channel
     @queueClient = redis.createClient @port, @host
+    @queueClient.on("error", @redisConnectionError)
+    @queueClient.on("connect", @redisQueueConnect)
+    
     @pubsubClient = redis.createClient @port, @host
-    @registerMessageHandlers @queue_key
-    @registerAsRunning
+    @pubsubClient.on("error", @redisConnectionError)    
+    @pubsubClient.on("connect", @redisPubsubConnect)    
+    
       
   # include call must come after the constructor
   helper.include(this)
   
+  redisQueueConnect: () =>
+    console.log "Connected queue"    
+    @startRedisQueue() unless @queueStarted
+    @resetConnectionAttempts()
+
+  redisPubsubConnect: () =>
+    console.log "Connected pubsub"    
+    @registerMessageHandlers @queue_key  
+    @startRedisPubsub() unless @pubsubStarted
+    @resetConnectionAttempts()
+    
+  resetConnectionAttempts: () ->
+    @connection_attempts = 0 if !@queueNeedsRestart && !@pubsubNeedsRestart      
+
+  redisConnectionError: (error) =>
+    # handle redis connection error and retry connection
+    # try to reconnect, if the connection fails
+    console.log "handler | #{@connection_attempts} attempts"
+    console.log "CONN ERROR: #{JSON.stringify(error)}"
+
+    @queueNeedsRestart = true
+    @pubsubNeedsRestart = true
+    
+    # if it fails too many times bail out
+    @connection_attempts = @connection_attempts + 1
+    if @connection_attempts > 20
+      console.log "Unable to connect to redis"      
+      process.exit(1)
+
+
   start: ->
     console.log "start worker"
-    @clearQueue(@queue_key)
+    if @pubsubActive && @queueActive      
+      @startRedisPubsub()
+      @startRedisQueue()
+    else      
+      console.log "Problem starting worker, redis connection not active yet - will auto start if a valid connection is made to redis"
+  
+  startRedisPubsub: ->
+    @pubsubNeedsRestart = false
     @subscribeToQueueChannel(@queue_key)
+  
+  startRedisQueue: ->
+    @queueNeedsRestart = false
+    @clearQueue(@queue_key)      
     @registerAsRunning()
     
   stop: ->
@@ -63,8 +119,8 @@ class CoffeeQWorker extends EventEmitter
     @disconnectFromQueueChannel(@queue_key)
     
   subscribeToQueueChannel: (channel) ->
-    console.log "subscribe to #{channel}"
-    @pubsubClient.subscribe channel
+    console.log "subscribe to #{channel}"    
+    @pubsubClient.subscribe channel    
   
   disconnectFromQueueChannel: (channel) ->
     console.log "unsubscribe from #{channel}"
@@ -90,7 +146,7 @@ class CoffeeQWorker extends EventEmitter
       console.log "subscribed to #{channel}"
     
   # Recursively pops and runs any items found on the queue at startup
-  clearQueue: (queue) ->
+  clearQueue: (queue) ->    
     @queueClient.llen queue, (err, resp) =>      
       if resp > 0
         @popAndRun queue
@@ -111,9 +167,7 @@ class CoffeeQWorker extends EventEmitter
           @perform job
         catch e
           console.log("CATCHING EXCEPTION #{e}")
-          @recordFailure(e, job)
-      else
-        console.log "Error popping #{err}"
+          @recordFailure(e, job)      
       
   ###
   Handles the actual running of the job.    
