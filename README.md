@@ -1,3 +1,4 @@
+[![build status](https://secure.travis-ci.org/pcrawfor/coffeeq.png)](http://travis-ci.org/pcrawfor/coffeeq)
 # CoffeeQ - Simple queuing library implemented on redis
 
 CoffeeQ is a simple queueing library for node.js implemented on top of redis and inspired by resque.  It was inspired by Coffee-Resque and implemented to satisfy the needs of a specific development project for a fast backend queueing library.  The use of redis build in pub/sub functionality makes the processing of new queue items very fast and eliminates the need to poll redis for changes.
