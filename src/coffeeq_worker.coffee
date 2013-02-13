@@ -35,11 +35,8 @@ Emits 'error' if there is an error fetching or running the job.
 ###
 
 process.on 'uncaughtException', (err) ->    
-  console.log "Caught exception: #{err}"
-  if err.match /ECONNREFUSED/
-    console.log "Redis Connection Error"
-  else
-    process.exit(1)
+  console.log "Caught exception: #{err}"  
+  process.exit(1)
 
 class CoffeeQWorker extends EventEmitter    
   
