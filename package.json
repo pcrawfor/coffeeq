@@ -1,6 +1,6 @@
 {
   "name"         : "coffeeq",
-  "version"      : "0.0.9",
+  "version"      : "0.0.10",
   "description"  : "Redis backed node.js queue implemented in CoffeeScript",
   "keywords"     : ["redis", "queue", "coffee script", "coffeeq"],
   "homepage"     : "https://github.com/pcrawfor/coffeeq",
